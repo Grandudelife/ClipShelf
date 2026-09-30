@@ -61,7 +61,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if event.keyCode == 125 { self.model.moveSelection(1); return nil }
             if event.keyCode == 126 { self.model.moveSelection(-1); return nil }
             if event.keyCode == 36 || event.keyCode == 76 {
-                if let clip = self.model.selected { self.model.paste(clip) }; return nil
+                if self.model.isCreatingSnippet { self.model.saveSnippet() }
+                else if let clip = self.model.selected { self.model.paste(clip) }
+                return nil
             }
             if event.modifierFlags.contains(.command) {
                 if let key = event.charactersIgnoringModifiers, let number = Int(key), (1...9).contains(number) {
@@ -109,7 +111,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func dismiss() { panel.orderOut(nil); model.targetApp?.activate(options: [.activateIgnoringOtherApps]) }
     @objc private func showSettings() {
         if settings == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 565),
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 630),
                                   styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = "تنظیمات ClipShelf"; window.isReleasedWhenClosed = false
             window.contentView = NSHostingView(rootView: SettingsView(model: model))

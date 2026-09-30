@@ -2,7 +2,7 @@
 set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="${CLIPSHELF_BUILD_DIR:-$PROJECT_DIR/.build-local}"
-DESTINATION="${1:-$PROJECT_DIR/../ClipShelf.app}"
+DESTINATION="${1:-$PROJECT_DIR/.build-output/ClipShelf.app}"
 mkdir -p "$BUILD_DIR"
 export CLANG_MODULE_CACHE_PATH="$BUILD_DIR/module-cache"
 export SWIFTPM_MODULECACHE_OVERRIDE="$BUILD_DIR/module-cache"

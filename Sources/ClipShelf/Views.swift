@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import ImageIO
 import ClipShelfCore
 
 private typealias StoredState<Value> = SwiftUI.State<Value>
@@ -39,7 +40,11 @@ struct ShelfView: View {
                 .padding(.horizontal, 24)
             HStack(spacing: 6) {
                 filterButton("همه", "all"); filterButton("متن", "text")
-                filterButton("فایل", "files"); filterButton("سنجاق‌شده", "pinned")
+                filterButton("فایل", "files"); filterButton("تصویر", "image")
+                filterButton("اسنیپت", "snippet"); filterButton("سنجاق‌شده", "pinned")
+                Button { model.beginSnippet() } label: { Image(systemName: "plus") }
+                    .buttonStyle(.plain).foregroundStyle(accent).help("اسنیپت جدید")
+                    .accessibilityLabel("اسنیپت جدید")
                 Spacer()
                 Text("\(model.visible.count) مورد").font(.system(size: 11)).foregroundStyle(.secondary)
             }.padding(.horizontal, 24).padding(.vertical, 14)
@@ -90,7 +95,7 @@ struct ShelfView: View {
                         VStack(spacing: 14) {
                             Image(systemName: model.query.isEmpty ? "clipboard" : "magnifyingglass")
                                 .font(.system(size: 30, weight: .light)).foregroundStyle(accent)
-                            Text(model.history.clips.isEmpty ? "اولین کپی، شروع کار است" : "موردی پیدا نشد")
+                            Text(model.filter == "snippet" ? "اسنیپتی اینجا نیست" : model.history.clips.isEmpty ? "اولین کپی، شروع کار است" : "موردی پیدا نشد")
                                 .font(.system(size: 16, weight: .semibold))
                             Text(model.history.clips.isEmpty ? "در هر برنامه متنی را کپی کنید، یا در Finder یک فایل را با ⌘C کپی کنید." : "جست‌وجو یا فیلتر را تغییر دهید.")
                                 .font(.system(size: 13)).foregroundStyle(.secondary).multilineTextAlignment(.center)
@@ -107,7 +112,7 @@ struct ShelfView: View {
     private func clipRow(_ clip: Clip, index: Int) -> some View {
         let selected = model.selection == clip.id
         return HStack(alignment: .top, spacing: 11) {
-            Image(systemName: clip.kind == .files ? "doc.on.doc" : "text.alignright")
+            Image(systemName: iconName(for: clip))
                 .font(.system(size: 16)).foregroundStyle(selected ? accent : .secondary)
                 .frame(width: 24).padding(.top, 3)
             VStack(alignment: .leading, spacing: 7) {
@@ -133,18 +138,27 @@ struct ShelfView: View {
         .contextMenu {
             Button("استفاده") { model.paste(clip) }
             Button("فقط کپی") { model.paste(clip, copyOnly: true) }
+            if clip.kind == .text { Button("ذخیره به‌عنوان اسنیپت") { model.beginSnippet(from: clip) } }
+            if clip.kind == .snippet { Button("ویرایش اسنیپت") { model.beginSnippet(from: clip) } }
             Button(clip.pinned ? "برداشتن سنجاق" : "سنجاق کردن") { model.togglePin(clip) }
             Divider()
             Button("حذف از تاریخچه", role: .destructive) { model.delete(clip) }
         }
     }
     @ViewBuilder private var preview: some View {
-        if let clip = model.selected {
+        if model.isCreatingSnippet {
+            snippetEditor
+        } else if let clip = model.selected {
             VStack(alignment: .leading, spacing: 18) {
                 HStack {
-                    Text(clip.kind == .text ? "پیش‌نمایش متن" : "فایل‌های کپی‌شده")
+                    Text(previewHeading(for: clip))
                         .font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                     Spacer()
+                    if clip.kind == .snippet {
+                        Button { model.beginSnippet(from: clip) } label: { Image(systemName: "pencil") }
+                            .buttonStyle(.plain).foregroundStyle(.secondary).help("ویرایش اسنیپت")
+                            .accessibilityLabel("ویرایش اسنیپت")
+                    }
                     Button { model.togglePin(clip) } label: { Image(systemName: clip.pinned ? "pin.fill" : "pin") }
                         .buttonStyle(.plain).foregroundStyle(clip.pinned ? accent : .secondary)
                         .help(clip.pinned ? "برداشتن سنجاق" : "سنجاق کردن")
@@ -154,9 +168,16 @@ struct ShelfView: View {
                         .accessibilityLabel("حذف از تاریخچه")
                 }
                 ScrollView {
-                    if clip.kind == .text {
+                    if clip.kind == .text || clip.kind == .snippet {
                         Text(clip.text).font(.system(size: 15)).lineSpacing(6).textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                    } else if clip.kind == .image {
+                        if let data = clip.imageData, let image = previewImage(data) {
+                            Image(nsImage: image).resizable().aspectRatio(contentMode: .fit)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            Text("پیش‌نمایش تصویر در دسترس نیست.").foregroundStyle(.secondary)
+                        }
                     } else {
                         VStack(alignment: .leading, spacing: 18) {
                             ForEach(clip.paths, id: \.self) { path in
@@ -177,7 +198,9 @@ struct ShelfView: View {
                 Spacer(minLength: 0)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(clip.source + " · " + clip.date.formatted(date: .abbreviated, time: .shortened))
-                    if clip.kind == .text { Text("\(clip.text.count) نویسه · متن ساده") }
+                    if clip.kind == .text { Text("\(clip.text.count) نویسه · \(clip.richType == nil ? "متن ساده" : "متن قالب‌دار")") }
+                    if clip.kind == .snippet { Text("اسنیپت آمادهٔ استفاده") }
+                    if clip.kind == .image { Text("\(ByteCountFormatter.string(fromByteCount: Int64(clip.imageData?.count ?? 0), countStyle: .file)) · ذخیرهٔ محلی") }
                 }.font(.system(size: 10)).foregroundStyle(.secondary)
                 if model.autoPaste && !model.trusted {
                     VStack(alignment: .leading, spacing: 7) {
@@ -201,6 +224,50 @@ struct ShelfView: View {
                 Text("تاریخچه پس از اجرای ClipShelf ساخته می‌شود و روی همین مک می‌ماند.")
                     .font(.system(size: 12)).foregroundStyle(.secondary).multilineTextAlignment(.center)
             }.padding(35)
+        }
+    }
+    private var snippetEditor: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(model.editingSnippetID == nil ? "اسنیپت جدید" : "ویرایش اسنیپت")
+                .font(.system(size: 19, weight: .semibold))
+            Text("متن‌های ثابت را ذخیره کنید تا هر وقت لازم شد دوباره Paste کنید.")
+                .font(.system(size: 12)).foregroundStyle(.secondary)
+            TextField("عنوان، مثلاً امضای ایمیل", text: $model.snippetTitle)
+                .textFieldStyle(.roundedBorder)
+            TextEditor(text: $model.snippetBody)
+                .font(.system(size: 14)).frame(minHeight: 160)
+                .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color.secondary.opacity(0.2)))
+            Spacer(minLength: 0)
+            HStack {
+                Button("انصراف") { model.cancelSnippet() }.buttonStyle(.bordered)
+                Spacer()
+                Button("ذخیرهٔ اسنیپت") { model.saveSnippet() }.buttonStyle(.borderedProminent)
+            }
+        }.padding(22)
+    }
+    private func previewImage(_ data: Data) -> NSImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceThumbnailMaxPixelSize: 1600,
+                kCGImageSourceShouldCacheImmediately: true
+              ] as CFDictionary) else { return nil }
+        return NSImage(cgImage: image, size: .zero)
+    }
+    private func iconName(for clip: Clip) -> String {
+        switch clip.kind {
+        case .files: return "doc.on.doc"
+        case .image: return "photo"
+        case .snippet: return "text.quote"
+        case .text: return "text.alignright"
+        }
+    }
+    private func previewHeading(for clip: Clip) -> String {
+        switch clip.kind {
+        case .files: return "فایل‌های کپی‌شده"
+        case .image: return "پیش‌نمایش تصویر"
+        case .snippet: return "اسنیپت"
+        case .text: return "پیش‌نمایش متن"
         }
     }
 }
@@ -237,6 +304,10 @@ struct SettingsView: View {
             Divider()
             VStack(alignment: .leading, spacing: 12) {
                 Toggle("Paste خودکار در برنامهٔ قبلی", isOn: Binding(get: { model.autoPaste }, set: model.setAutoPaste))
+                Toggle("افزودن اسکرین‌شات‌های ذخیره‌شده به تاریخچه",
+                       isOn: Binding(get: { model.importSavedScreenshots }, set: model.setImportSavedScreenshots))
+                Text("اسکرین‌شات‌های تصویری تازه در محل ذخیرهٔ تنظیم‌شدهٔ macOS شناسایی می‌شوند. فایل تصویر در تاریخچه نگه داشته می‌شود.")
+                    .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Text(model.trusted ? "دسترسی Accessibility فعال است" : "Paste خودکار به دسترسی Accessibility نیاز دارد")
                         .font(.system(size: 12)).foregroundStyle(.secondary)
@@ -252,7 +323,7 @@ struct SettingsView: View {
                 Text("ذخیره‌سازی روی همین مک").font(.headline)
                 Text("تاریخچه به اینترنت ارسال نمی‌شود و رمزگذاری جداگانه ندارد. برای کپی‌های حساس، ثبت را متوقف کنید. موارد علامت‌گذاری‌شده به‌عنوان محرمانه توسط برنامهٔ مبدأ نادیده گرفته می‌شوند.")
                     .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Text("سقف هر مورد ۱ مگابایت، کل تاریخچه ۲۰ مگابایت و موارد سنجاق‌شده ۲۰ عدد است.")
+                Text("سقف هر مورد ۸ مگابایت، کل تاریخچه ۲۰ مگابایت، تا ۲۰ مورد سنجاق‌شده و ۱۰۰ اسنیپت است.")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
                 Button("پاک کردن تمام تاریخچه…", role: .destructive) { confirmClear = true }
             }
@@ -260,9 +331,9 @@ struct SettingsView: View {
                 Text(message).font(.system(size: 12)).foregroundStyle(accent).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            Text("ClipShelf 1.0 · ساخته‌شده برای macOS").font(.system(size: 10)).foregroundStyle(.secondary)
+            Text("ClipShelf 1.2.0 · ساخته‌شده برای macOS").font(.system(size: 10)).foregroundStyle(.secondary)
         }
-        .padding(28).frame(width: 520, height: 565).background(Color(nsColor: .windowBackgroundColor))
+        .padding(28).frame(width: 520, height: 630).background(Color(nsColor: .windowBackgroundColor))
         .environment(\.layoutDirection, .rightToLeft).tint(accent)
         .onChange(of: draft.keyCode) { code in draft.key = Shortcut.keys.first { $0.1 == code }?.0 ?? "V" }
         .alert("تمام تاریخچه پاک شود؟", isPresented: $confirmClear) {

@@ -37,7 +37,7 @@ import ClipShelfCore
         var history = History()
         expectFalse(history.insert(Clip(text: ""), limit: 20))
         expectFalse(history.insert(Clip(paths: []), limit: 20))
-        expectFalse(history.insert(Clip(text: String(repeating: "a", count: History.itemByteLimit + 1)), limit: 20))
+        expectFalse(history.insert(Clip(text: String(repeating: "a", count: History.itemByteLimit)), limit: 20))
         expect(history.clips.isEmpty)
     }
     static func testCorruptedFileReportsErrorInsteadOfSilentlyResetting() throws {
