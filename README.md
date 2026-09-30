@@ -2,7 +2,19 @@
 
 ClipShelf is a lightweight macOS clipboard history app for text, images, files, and reusable snippets. It lives in the menu bar, keeps history locally, and lets you bring back an earlier item with a configurable global shortcut.
 
+[فارسی](README.fa.md) · English
+
+## فارسی
+
+ClipShelf یک برنامهٔ سبک برای نگهداری و جست‌وجوی تاریخچهٔ کلیپ‌بورد در مک است. متن، فایل‌ها، تصویرها و اسنیپت‌های آماده را یک‌جا ببینید و با میان‌بر صفحه‌کلید دوباره استفاده کنید. اطلاعات روی همین مک می‌ماند.
+
+راهنمای فارسی کامل در [README.fa.md](README.fa.md) است.
+
+![نمایی از پنجرهٔ ClipShelf](Screenshots/ClipShelf-1.2.0.png)
+
 The interface is currently Persian (RTL). English localization is a welcome contribution.
+
+![ClipShelf main window](Screenshots/ClipShelf-1.2.0.png)
 
 ## Features
 
