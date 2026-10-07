@@ -1,10 +1,18 @@
 # ClipShelf
 
+**[⬇ Download for macOS / دانلود نسخهٔ مک — Apple Silicon](Downloads/ClipShelf-1.2.0-macos-arm64.zip?raw=true)**
+
+Version 1.2.0 · macOS 13 or later · M1/M2/M3/M4 and later Apple Silicon Macs. No Xcode is needed to use the downloaded app.
+
+Quit any running copy of ClipShelf, unzip the download, move `ClipShelf-1.2.0.app` to Applications, and open it from there.
+
 ClipShelf is a lightweight macOS clipboard history app for text, images, files, and reusable snippets. It lives in the menu bar, keeps history locally, and lets you bring back an earlier item with a configurable global shortcut.
 
 [فارسی](README.fa.md) · English
 
 ## فارسی
+
+برای نصب، ابتدا از ClipShelf قبلی خارج شوید، فایل دانلودشده را از حالت فشرده خارج کنید و `ClipShelf-1.2.0.app` را به پوشهٔ Applications ببرید و از همان‌جا باز کنید. برای استفاده از نسخهٔ آماده نیازی به Xcode نیست.
 
 ClipShelf یک برنامهٔ سبک برای نگهداری و جست‌وجوی تاریخچهٔ کلیپ‌بورد در مک است. متن، فایل‌ها، تصویرها و اسنیپت‌های آماده را یک‌جا ببینید و با میان‌بر صفحه‌کلید دوباره استفاده کنید. اطلاعات روی همین مک می‌ماند.
 
