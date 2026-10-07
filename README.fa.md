@@ -2,6 +2,10 @@
 
 **[⬇ دانلود مستقیم ClipShelf برای مک‌های Apple Silicon](Downloads/ClipShelf-1.2.0-macos-arm64.zip?raw=true)**
 
+<p align="center">
+  <img src="Screenshots/ClipShelf-introduction.png" alt="معرفی ClipShelf، مدیر رایگان و متن‌باز کلیپ‌بورد مک" width="720">
+</p>
+
 نسخهٔ 1.2.0 · نیازمند macOS 13 یا جدیدتر · برای مک‌های دارای تراشهٔ Apple Silicon. برای استفاده از نسخهٔ آماده نیازی به Xcode نیست.
 
 ابتدا از نسخهٔ قبلی ClipShelf خارج شوید، فایل دانلودشده را از حالت فشرده خارج کنید و `ClipShelf-1.2.0.app` را به پوشهٔ Applications ببرید و از همان‌جا باز کنید.

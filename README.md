@@ -2,6 +2,10 @@
 
 **[⬇ Download for macOS / دانلود نسخهٔ مک — Apple Silicon](Downloads/ClipShelf-1.2.0-macos-arm64.zip?raw=true)**
 
+<p align="center">
+  <img src="Screenshots/ClipShelf-introduction.png" alt="ClipShelf — free, open-source clipboard manager for macOS" width="720">
+</p>
+
 Version 1.2.0 · macOS 13 or later · M1/M2/M3/M4 and later Apple Silicon Macs. No Xcode is needed to use the downloaded app.
 
 Quit any running copy of ClipShelf, unzip the download, move `ClipShelf-1.2.0.app` to Applications, and open it from there.
